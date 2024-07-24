@@ -59,3 +59,40 @@ if __name__ == "__main__":
     server.start()
 
 
+# Mechanisms of this protocol:
+
+# Connection-oriented -
+# The server uses TCP/IP sockets, which are connection-oriented.
+# Inspect line 22: self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM), 
+# where SOCK_STREAM specifies a TCP socket.
+
+# Reliable -
+# ACK: the server sends an acknowledgement for each recevied packed
+# Inspect line 42: client_socket.send(f"ACK: {ack_num}".encode('utf-8')). 
+# This ensures the sender/client knows that the packet was received. 
+# The Loop for Connection in handle_client keeps the connection open to continuously receive 
+# and acknowledge messages, ensuring reliable data transfer until the connection is explicitly closed.
+
+# Pipelined -
+# Continuous data flow: The server does not wait for an acknowledgement of one packet before sending
+# the next packet. This is implied by the continuous loops of receiving and ACKing
+# packets before proceeding. This allows for multiple pakets to be "in flight" at the same time, 
+# characteristic of a pipelined protocol.
+
+# Flow Control -
+# Inspect line 45: congestion_window = min(congestion_window + 1, FLOW_CONTROL_WINDOW_SIZE).
+# Window Size: The constant FLOW_CONTROL_WINDOW_SIZE specifies the maximum number of packets
+# that can be sent without receivig an acknowledgement. Although the code does not explicitly 
+# limit the sending of packets based on this window (since it's a server-side implementation
+# focusing on receiving data), the concept is present and would be applied on the client-side to 
+# prevent overflowing the server's buffer.
+
+# Congestion Control -
+# Congestion Window Adjustment: The server simulates basic congestion control by adjusting the
+# congestion_window variable, see line 45 (congestion_window = min(congestion_window + 1, FLOW_CONTROL_WINDOW_SIZE)).
+# After each ACK, the congestion window is incremented by 1, up to the limit set by FLOW_CONTROL_WINDOW_SIZE.
+# This simple approach mimics the behaviour of increasing the congestion dinwo in response to successful 
+# transmission, although real-world protocols would decrease the window upon detecting congestion signals (ie. packet loss or timeouts)
+
+
+
